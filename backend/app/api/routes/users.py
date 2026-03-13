@@ -111,7 +111,11 @@ def get_me(
     """Return the current user's profile and tier info."""
     user = db.query(User).filter(User.id == owner_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="user_not_found")
+        # Auto-create user for access-code auth flow
+        user = User(id=owner_id, email=f"{owner_id}@scout.local", tier=AccountTier.unlocked)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return {
         "id": user.id,
         "email": user.email,
@@ -138,7 +142,10 @@ def apply_unlock_code(
 
     user = db.query(User).filter(User.id == owner_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="user_not_found")
+        user = User(id=owner_id, email=f"{owner_id}@scout.local", tier=AccountTier.unlocked)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
     user.tier = AccountTier.unlocked
     db.add(user)

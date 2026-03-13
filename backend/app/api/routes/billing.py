@@ -35,7 +35,10 @@ def create_checkout_session(
 
     user = db.query(User).filter(User.id == owner_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="user_not_found")
+        user = User(id=owner_id, email=f"{owner_id}@scout.local", tier=AccountTier.unlocked)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
     if user.tier in (AccountTier.pro, AccountTier.unlocked):
         raise HTTPException(status_code=400, detail="already_upgraded")
