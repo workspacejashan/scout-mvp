@@ -188,10 +188,7 @@ function SettingsContent() {
         {/* User info */}
         {user && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>Email</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{user.email}</div>
-
-            <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Plan</div>
+            <div style={{ fontSize: 13, color: "#6b7280" }}>Plan</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span
                 style={{

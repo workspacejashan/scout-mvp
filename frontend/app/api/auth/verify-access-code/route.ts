@@ -16,6 +16,8 @@ function sign(secret: string, message: string): string {
   return base64Url(h);
 }
 
+const DEFAULT_USER_ID = "access-code-user";
+
 export async function POST(req: NextRequest) {
   const accessCode = (process.env.ACCESS_CODE || "").trim();
   if (!accessCode) {
@@ -56,46 +58,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve a default user in the backend using a placeholder email.
-  const defaultEmail = (process.env.DEFAULT_USER_EMAIL || "admin@gleel2.com").trim();
-  const backendUrl = (
-    process.env.BACKEND_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    "http://127.0.0.1:8000"
-  ).replace(/\/+$/, "");
-  const adminToken = (process.env.ADMIN_API_TOKEN || "").trim();
-
-  let userId: string;
-  try {
-    const resolveRes = await fetch(`${backendUrl}/api/users/resolve`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
-      },
-      body: JSON.stringify({ email: defaultEmail }),
-    });
-    if (!resolveRes.ok) {
-      const data = await resolveRes.json().catch(() => ({}));
-      console.error("User resolve failed:", resolveRes.status, data);
-      return NextResponse.json(
-        { error: data.detail || "Failed to resolve user" },
-        { status: 500 }
-      );
-    }
-    const userData = await resolveRes.json();
-    userId = userData.id;
-  } catch (err) {
-    console.error("User resolve error:", err);
-    return NextResponse.json(
-      { error: "Failed to resolve user" },
-      { status: 500 }
-    );
-  }
-
-  // Create v2 session token
+  // Create v2 session token with a fixed user ID (no backend call needed)
   const exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
-  const msg = `v2.${userId}.${exp}`;
+  const msg = `v2.${DEFAULT_USER_ID}.${exp}`;
   const token = `${msg}.${sign(secret, msg)}`;
 
   const res = NextResponse.json({ ok: true });

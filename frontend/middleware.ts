@@ -69,8 +69,6 @@ function isPublicPath(pathname: string): boolean {
   if (pathname === "/login") return true;
   if (pathname === "/api/login") return true;
   if (pathname === "/api/logout") return true;
-  if (pathname === "/api/auth/send-otp") return true;
-  if (pathname === "/api/auth/verify-otp") return true;
   if (pathname === "/api/auth/verify-access-code") return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname === "/favicon.ico") return true;

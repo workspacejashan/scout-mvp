@@ -63,13 +63,18 @@ def get_current_user(
     request: Request, db: Session = Depends(get_db)
 ):
     """
-    Load the full User object from DB. Raises 401 if not found.
+    Load the full User object from DB. Auto-creates if not found
+    (supports access-code auth where user is created on first API call).
     Import here to avoid circular imports at module level.
     """
-    from app.db.models import User
+    from app.db.models import User, AccountTier
 
     user_id = get_current_user_id(request)
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=401, detail="user_not_found")
+        # Auto-create user for access-code auth flow
+        user = User(id=user_id, email=f"{user_id}@scout.local", tier=AccountTier.unlocked)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return user
