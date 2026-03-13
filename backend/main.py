@@ -20,7 +20,8 @@ def main() -> None:
 
     if role == "worker":
         # Use `python -m` to avoid relying on entrypoint scripts with brittle shebangs.
-        _exec(["python", "-m", "celery", "-A", "app.worker.celery_app", "worker", "-l", "info"])
+        concurrency = os.getenv("CELERY_CONCURRENCY", "4")
+        _exec(["python", "-m", "celery", "-A", "app.worker.celery_app", "worker", "-l", "info", "--concurrency", concurrency, "--pool", "prefork"])
 
     port = str(os.getenv("PORT", "8000"))
     _exec(["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", port])
