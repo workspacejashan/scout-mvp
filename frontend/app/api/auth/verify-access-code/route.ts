@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Resolve a default user in the backend using a placeholder email.
-  const defaultEmail = (process.env.DEFAULT_USER_EMAIL || "admin@scout.local").trim();
+  const defaultEmail = (process.env.DEFAULT_USER_EMAIL || "admin@gleel2.com").trim();
   const backendUrl = (
     process.env.BACKEND_URL ||
     process.env.NEXT_PUBLIC_BACKEND_URL ||
