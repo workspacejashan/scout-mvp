@@ -3,31 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const FREE_EMAIL_DOMAINS = new Set([
-  "gmail.com", "googlemail.com",
-  "yahoo.com", "yahoo.co.uk", "yahoo.co.in",
-  "outlook.com", "hotmail.com", "live.com", "msn.com",
-  "aol.com",
-  "icloud.com", "me.com", "mac.com",
-  "protonmail.com", "proton.me", "pm.me",
-  "tutanota.com", "tuta.io",
-  "zoho.com", "zohomail.com",
-  "yandex.com", "yandex.ru",
-  "mail.com", "email.com",
-  "gmx.com", "gmx.net",
-  "fastmail.com",
-  "hey.com",
-  "mailinator.com",
-  "guerrillamail.com",
-  "tempmail.com",
-]);
-
-function isWorkEmail(email: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  if (!domain) return false;
-  return !FREE_EMAIL_DOMAINS.has(domain);
-}
-
 function base64Url(buf: Buffer): string {
   return buf
     .toString("base64")
@@ -58,26 +33,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { email?: string; accessCode?: string };
+  let body: { accessCode?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const email = (body.email || "").trim().toLowerCase();
   const code = (body.accessCode || "").trim();
 
-  if (!email || !code) {
+  if (!code) {
     return NextResponse.json(
-      { error: "Email and access code are required" },
-      { status: 400 }
-    );
-  }
-
-  if (!isWorkEmail(email)) {
-    return NextResponse.json(
-      { error: "Please use your work email address" },
+      { error: "Access code is required" },
       { status: 400 }
     );
   }
@@ -89,7 +56,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve (or create) the user in the backend.
+  // Resolve a default user in the backend using a placeholder email.
+  const defaultEmail = (process.env.DEFAULT_USER_EMAIL || "admin@scout.local").trim();
   const backendUrl = (
     process.env.BACKEND_URL ||
     process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -105,7 +73,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
         ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email: defaultEmail }),
     });
     if (!resolveRes.ok) {
       const data = await resolveRes.json().catch(() => ({}));
