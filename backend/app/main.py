@@ -51,9 +51,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 # ---------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    if not is_prod:
-        Base.metadata.create_all(bind=engine)
+    # Startup — create tables (idempotent, only creates missing ones)
+    Base.metadata.create_all(bind=engine)
     yield
     # Shutdown: dispose connection pool so workers drain cleanly.
     engine.dispose()

@@ -9,16 +9,6 @@ def _exec(cmd: list[str]) -> None:
     os.execvp(cmd[0], cmd)
 
 
-def _run_migrations() -> None:
-    """Run alembic migrations before starting the app."""
-    import subprocess
-    result = subprocess.run(["python", "-m", "alembic", "upgrade", "head"], capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"Migration warning: {result.stderr}", file=sys.stderr)
-    else:
-        print("Migrations applied successfully.")
-
-
 def main() -> None:
     """
     Railway (Railpack) needs an explicit entrypoint in the project root.
@@ -27,10 +17,6 @@ def main() -> None:
       - SERVICE_ROLE=worker -> celery worker
     """
     role = (os.getenv("SERVICE_ROLE", "api") or "api").strip().lower()
-
-    # Run DB migrations before starting API
-    if role == "api":
-        _run_migrations()
 
     if role == "worker":
         # Use `python -m` to avoid relying on entrypoint scripts with brittle shebangs.
