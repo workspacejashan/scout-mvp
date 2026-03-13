@@ -65,7 +65,7 @@ export default function HomePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [activeEnrichJobId, setActiveEnrichJobId] = useState<string | null>(null);
   const [enrichmentSummary, setEnrichmentSummary] = useState<EnrichmentSummary | null>(null);
-  const chainSource: EnrichSource = "chain";
+  const chainSource: EnrichSource = "source1" as EnrichSource;
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
