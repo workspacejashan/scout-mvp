@@ -1,0 +1,140 @@
+# Render Blueprint – scout-mvp
+# https://render.com/docs/blueprint-spec
+
+databases:
+  - name: scout-db
+    plan: starter
+    databaseName: scout
+    user: scout
+    ipAllowList: []  # only internal access
+
+services:
+  # ── Backend API ──────────────────────────────────────────────
+  - type: web
+    name: scout-api
+    runtime: python
+    plan: starter
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENV
+        value: production
+      - key: SERVICE_ROLE
+        value: api
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: scout-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: scout-redis
+          type: redis
+          property: connectionString
+      - key: ADMIN_API_TOKEN
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SCRAPEDO_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_ID
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  # ── Celery Worker ────────────────────────────────────────────
+  - type: worker
+    name: scout-worker
+    runtime: python
+    plan: starter
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m celery -A app.worker.celery_app worker -l info --concurrency 4 --pool prefork
+    envVars:
+      - key: ENV
+        value: production
+      - key: SERVICE_ROLE
+        value: worker
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: scout-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: scout-redis
+          type: redis
+          property: connectionString
+      - key: ADMIN_API_TOKEN
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SCRAPEDO_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+
+  # ── Frontend (Next.js) ──────────────────────────────────────
+  - type: web
+    name: scout-frontend
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_BACKEND_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: ADMIN_API_TOKEN
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: scout-redis
+          type: redis
+          property: connectionString
+
+  # ── Redis ────────────────────────────────────────────────────
+  - type: redis
+    name: scout-redis
+    plan: starter
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru

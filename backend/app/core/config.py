@@ -24,6 +24,16 @@ def _get_bool(name: str, default: bool) -> bool:
     return str(v).strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+
+def _normalize_db_url(url: str) -> str:
+    """Render provides postgres:// but SQLAlchemy 2.x needs postgresql+psycopg2://."""
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    return url
+
+
 class Settings:
     # Runtime environment
     # - development: permissive defaults for local dev
@@ -34,9 +44,9 @@ class Settings:
     # This repo is single-tenant (APP_DEFAULT_OWNER_ID) so this is the minimum viable protection for going public.
     ADMIN_API_TOKEN: str = os.getenv("ADMIN_API_TOKEN", "")
 
-    DATABASE_URL: str = os.getenv(
+    DATABASE_URL: str = _normalize_db_url(os.getenv(
         "DATABASE_URL", "postgresql+psycopg2://scout:scout@127.0.0.1:5433/scout"
-    )
+    ))
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://127.0.0.1:6380/0")
 
     APP_DEFAULT_OWNER_ID: str = os.getenv("APP_DEFAULT_OWNER_ID", "local-owner")
