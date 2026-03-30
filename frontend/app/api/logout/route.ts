@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     name: "scout_session",
     value: "",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
     secure: true,
     path: "/",
     maxAge: 0,
