@@ -38,7 +38,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "ALLOW-FROM https://gleel2.com"
-        response.headers["Content-Security-Policy"] = "frame-ancestors 'self' https://gleel2.com https://*.gleel2.com"
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'self' https://gleel2.com https://*.gleel2.com http://localhost:* http://127.0.0.1:*"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         if is_prod:
             response.headers["Strict-Transport-Security"] = (
