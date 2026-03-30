@@ -37,7 +37,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: StarletteRequest, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Frame-Options"] = "ALLOW-FROM https://gleel2.com"
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'self' https://gleel2.com https://*.gleel2.com"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         if is_prod:
             response.headers["Strict-Transport-Security"] = (
